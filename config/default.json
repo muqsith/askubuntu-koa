@@ -3,20 +3,26 @@
     "directory": "controllers"
   },
   "logger": {
-      "file":{
-        "filename": "./logs/app.log",
-        "level": "debug",
-        "json": true,
-        "timestamp": true
-      },
-      "console":{
-        "level": "debug",
-        "colorize": "true"
-      }
+    "file": {
+      "filename": "./logs/app.log",
+      "level": "debug",
+      "json": true,
+      "timestamp": true
     },
+    "console": {
+      "level": "debug",
+      "colorize": "true"
+    }
+  },
   "mongodb": {
     "host": "localhost",
     "port": 27017,
     "db": "askubuntu"
+  },
+  "jade": {
+    "viewPath": "./public/templates",
+    "debug": false,
+    "pretty": false,
+    "compileDebug": false
   }
 }
