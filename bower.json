@@ -1,0 +1,26 @@
+{
+  "name": "askubuntu-koa",
+  "description": "Q&A site for Ubuntu",
+  "main": "app.js",
+  "authors": [
+    "muqsith"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "koa",
+    "mongodb",
+    "gulp"
+  ],
+  "homepage": "https://github.com/muqsith/askubuntu-koa",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "public/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.1.1"
+  }
+}
