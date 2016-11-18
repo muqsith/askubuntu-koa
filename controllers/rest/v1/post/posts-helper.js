@@ -58,10 +58,69 @@ var getAssembledPost = function(mongo)
     };
 };
 
+var getAllPostsByPage = function(mongo)
+{
+    return function *(pageNumber, itemsInPage)
+    {
+        var result = {totalPosts:0, numberOfPages: 0,
+        currentPage: pageNumber,
+        itemsInPage: 0, result: []};
+        if(pageNumber > 0 && itemsInPage > 0)
+        {
+            var docIds = yield mongo.collection('Posts')
+                .aggregate([ { $sort: { 'LastActivityDate': -1 } }
+                    , { $project: { '_id':1 } } ]).toArray();
+            if(docIds && docIds.length)
+            {
+                var docsCount = docIds.length;
+                result.totalPosts = docsCount;
+                var lastPageDocs = docsCount % itemsInPage;
+                var pages = ((docsCount - lastPageDocs) / itemsInPage) + 1;
+                result.numberOfPages = pages;
+                var fromDocNumber = (itemsInPage * (pageNumber -1));
+                var tillDocNumber = ( (itemsInPage * (pageNumber))
+                    < (docIds.length - 1) )
+                    ? (itemsInPage * (pageNumber)) : (docIds.length - 1);
+
+                var selectedDocIds = [];
+                for(var i = fromDocNumber; i < tillDocNumber; i += 1)
+                {
+                    selectedDocIds.push(docIds[i]['_id']);
+                }
+                result.result = yield mongo.collection('Posts')
+                    .aggregate([ { $match: { '_id' : { '$in' : selectedDocIds } } }
+                    ,{$sort: { 'LastActivityDate': -1} } ]).toArray();
+                result.itemsInPage = result.result.length;
+            }
+        }
+        return result;
+    }
+};
+
+var getPostsBySearch = function(mongo)
+{
+    return function *(searchString)
+    {
+        /* db.Posts.aggregate([ { $match: { $text : { $search : 'Xenial' } } }
+        ,{$sort: { 'LastActivityDate': -1} },
+        { $project: { '_id':1,'Title':1 } } ]); */
+        var result = yield mongo.collection('Posts')
+        .aggregate([ { $match: { $text : { $search : searchString } } }
+        ,{$sort: { 'LastActivityDate': -1} } ]).toArray();
+
+        return result;
+    }
+};
+
 module.exports = function(mongo)
 {
+    // db.Posts.aggregate([ {$sort: { 'LastActivityDate': -1} } ]);
+    // db.Posts.find({ $text : { $search : 'Xenial' } }).count();
+
     return {
         getPostById : getPostById(mongo),
-        getAssembledPost : getAssembledPost(mongo)
+        getAssembledPost : getAssembledPost(mongo),
+        getAllPostsByPage : getAllPostsByPage(mongo),
+        getPostsBySearch : getPostsBySearch(mongo)
     };
 };

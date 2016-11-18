@@ -26,6 +26,21 @@ describe('Posts - Test', function(){
         assert.equal(parseInt(doc['Id']), 10);
     });
 
+    it("should get posts by page number and items per page", function *(){
+        this.timeout(3 * 1000);
+        var result = yield postsHelper.getAllPostsByPage(1,30);
+        console.log('\n\t', 'Total posts: ', result.totalPosts,
+        ', Number of pages: ', result.numberOfPages, ', Current page: ',
+        result.currentPage, ', Items in page: ', result.itemsInPage);
+        assert.equal(result.itemsInPage, 30);
+    });
+
+    it("should get the search result", function *(){
+        var result = yield postsHelper.getPostsBySearch("Xenial");
+        console.log(result.length);
+        assert.notEqual(result.length, 0);
+    });
+
     after(function *(){
         mdb.close();
     });
