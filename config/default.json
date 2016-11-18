@@ -1,5 +1,5 @@
 {
-  "router": {
+  "routes": {
     "directory": "controllers"
   },
   "logger": {
