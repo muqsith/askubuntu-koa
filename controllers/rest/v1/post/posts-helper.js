@@ -3,7 +3,7 @@ var getPostById = function(mongo)
     return function *(id)
     {
         var cursor = mongo.collection('Posts').find({'Id':id});
-        var docs = {};
+        var doc = {};
         while(yield cursor.hasNext())
         {
             doc = yield cursor.next();
@@ -21,7 +21,8 @@ var getAssembledPost = function(mongo)
         while (yield postsCursor.hasNext())
         {
             post = yield postsCursor.next();
-            var commentsCursor = mongo.collection('Comments').find({'PostId':postId});
+            var commentsCursor = mongo.collection('Comments')
+                .find({'PostId':postId});
             var comments = [];
             while(yield commentsCursor.hasNext())
             {
@@ -29,7 +30,8 @@ var getAssembledPost = function(mongo)
                 comments.push(comment);
             }
             post.comments = comments;
-            var postHistoryCursor = mongo.collection('PostHistory').find({'PostId':postId});
+            var postHistoryCursor = mongo.collection('PostHistory')
+                .find({'PostId':postId});
             var postHistory = [];
             while(yield postHistoryCursor.hasNext())
             {
@@ -37,7 +39,8 @@ var getAssembledPost = function(mongo)
                 postHistory.push(postHistoryObject);
             }
             post.postHistory = postHistory;
-            var postLinksCursor = mongo.collection('PostLinks').find({'PostId':postId});
+            var postLinksCursor = mongo.collection('PostLinks')
+                .find({'PostId':postId});
             var postLinks = [];
             while (yield postLinksCursor.hasNext())
             {
@@ -45,7 +48,8 @@ var getAssembledPost = function(mongo)
                 postLinks.push(postLink);
             }
             post.postLinks = postLinks;
-            var votesCursor = mongo.collection('Votes').find({'PostId':postId});
+            var votesCursor = mongo.collection('Votes')
+                .find({'PostId':postId});
             var votes = [];
             while (yield votesCursor.hasNext())
             {
@@ -68,7 +72,8 @@ var getAllPostsByPage = function(mongo)
         if(pageNumber > 0 && itemsInPage > 0)
         {
             var docIds = yield mongo.collection('Posts')
-                .aggregate([ { $sort: { 'LastActivityDate': -1 } }
+                .aggregate([ { $match: { 'PostTypeId': { $eq : 1 }  } }
+                    ,{ $sort: { 'LastActivityDate': -1 } }
                     , { $project: { '_id':1 } } ]).toArray();
             if(docIds && docIds.length)
             {
@@ -88,8 +93,12 @@ var getAllPostsByPage = function(mongo)
                     selectedDocIds.push(docIds[i]['_id']);
                 }
                 result.result = yield mongo.collection('Posts')
-                    .aggregate([ { $match: { '_id' : { '$in' : selectedDocIds } } }
-                    ,{$sort: { 'LastActivityDate': -1} } ]).toArray();
+                    .aggregate([
+                        { $match: { '_id' : { '$in' : selectedDocIds }
+                    , 'PostTypeId': { $eq : 1 }  } }
+                    ,{$sort: { 'LastActivityDate': -1} }
+                    ,{ $project: {'_id':1, 'Title':1, 'Score':1 }}
+                ]).toArray();
                 result.itemsInPage = result.result.length;
             }
         }
@@ -101,12 +110,11 @@ var getPostsBySearch = function(mongo)
 {
     return function *(searchString)
     {
-        /* db.Posts.aggregate([ { $match: { $text : { $search : 'Xenial' } } }
-        ,{$sort: { 'LastActivityDate': -1} },
-        { $project: { '_id':1,'Title':1 } } ]); */
         var result = yield mongo.collection('Posts')
-        .aggregate([ { $match: { $text : { $search : searchString } } }
-        ,{$sort: { 'LastActivityDate': -1} } ]).toArray();
+        .aggregate([ { $match: { $text : { $search : searchString }
+            , 'PostTypeId': { $eq : 1 }  } }
+        ,{$sort: { 'LastActivityDate': -1} }
+        ,{ $project: {'_id':1, 'Title':1, 'Score':1 }} ]).toArray();
 
         return result;
     }
@@ -114,9 +122,7 @@ var getPostsBySearch = function(mongo)
 
 module.exports = function(mongo)
 {
-    // db.Posts.aggregate([ {$sort: { 'LastActivityDate': -1} } ]);
-    // db.Posts.find({ $text : { $search : 'Xenial' } }).count();
-
+    'use strict';
     return {
         getPostById : getPostById(mongo),
         getAssembledPost : getAssembledPost(mongo),

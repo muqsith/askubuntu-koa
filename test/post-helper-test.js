@@ -17,13 +17,14 @@ describe('Posts - Test', function(){
     });
 
     it("should get one post", function *(){
-        var doc = yield postsHelper.getPostById(10);
-        assert.equal(parseInt(doc['Id']), 10);
+        var doc = yield postsHelper.getPostById(47);
+        assert.equal(parseInt(doc['Id']), 47);
     });
 
     it("should get one fully assembled post", function *(){
-        var doc = yield postsHelper.getAssembledPost(10);
-        assert.equal(parseInt(doc['Id']), 10);
+        this.timeout(5 * 1000);
+        var doc = yield postsHelper.getAssembledPost(47);
+        assert.equal(parseInt(doc['Id']), 47);
     });
 
     it("should get posts by page number and items per page", function *(){
